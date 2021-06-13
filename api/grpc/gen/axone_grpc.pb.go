@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AxoneClient interface {
 	SendNewTicket(ctx context.Context, in *NewTicketRequest, opts ...grpc.CallOption) (*NewTicketResponse, error)
+	SendAttachment(ctx context.Context, opts ...grpc.CallOption) (Axone_SendAttachmentClient, error)
 }
 
 type axoneClient struct {
@@ -38,11 +39,46 @@ func (c *axoneClient) SendNewTicket(ctx context.Context, in *NewTicketRequest, o
 	return out, nil
 }
 
+func (c *axoneClient) SendAttachment(ctx context.Context, opts ...grpc.CallOption) (Axone_SendAttachmentClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Axone_ServiceDesc.Streams[0], "/api.Axone/SendAttachment", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &axoneSendAttachmentClient{stream}
+	return x, nil
+}
+
+type Axone_SendAttachmentClient interface {
+	Send(*AttachmentRequest) error
+	CloseAndRecv() (*AttachmentResponse, error)
+	grpc.ClientStream
+}
+
+type axoneSendAttachmentClient struct {
+	grpc.ClientStream
+}
+
+func (x *axoneSendAttachmentClient) Send(m *AttachmentRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *axoneSendAttachmentClient) CloseAndRecv() (*AttachmentResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(AttachmentResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AxoneServer is the server API for Axone service.
 // All implementations must embed UnimplementedAxoneServer
 // for forward compatibility
 type AxoneServer interface {
 	SendNewTicket(context.Context, *NewTicketRequest) (*NewTicketResponse, error)
+	SendAttachment(Axone_SendAttachmentServer) error
 	mustEmbedUnimplementedAxoneServer()
 }
 
@@ -52,6 +88,9 @@ type UnimplementedAxoneServer struct {
 
 func (UnimplementedAxoneServer) SendNewTicket(context.Context, *NewTicketRequest) (*NewTicketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendNewTicket not implemented")
+}
+func (UnimplementedAxoneServer) SendAttachment(Axone_SendAttachmentServer) error {
+	return status.Errorf(codes.Unimplemented, "method SendAttachment not implemented")
 }
 func (UnimplementedAxoneServer) mustEmbedUnimplementedAxoneServer() {}
 
@@ -84,6 +123,32 @@ func _Axone_SendNewTicket_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Axone_SendAttachment_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(AxoneServer).SendAttachment(&axoneSendAttachmentServer{stream})
+}
+
+type Axone_SendAttachmentServer interface {
+	SendAndClose(*AttachmentResponse) error
+	Recv() (*AttachmentRequest, error)
+	grpc.ServerStream
+}
+
+type axoneSendAttachmentServer struct {
+	grpc.ServerStream
+}
+
+func (x *axoneSendAttachmentServer) SendAndClose(m *AttachmentResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *axoneSendAttachmentServer) Recv() (*AttachmentRequest, error) {
+	m := new(AttachmentRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // Axone_ServiceDesc is the grpc.ServiceDesc for Axone service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -96,6 +161,12 @@ var Axone_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Axone_SendNewTicket_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SendAttachment",
+			Handler:       _Axone_SendAttachment_Handler,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "axone.proto",
 }
