@@ -1,0 +1,20 @@
+syntax = "proto3";
+package api ;
+
+option go_package = "grpc/gen" ;
+
+service Axone {
+    rpc SendNewTicket(NewTicketRequest) returns (NewTicketResponse);
+}
+
+message NewTicketRequest {
+    string ticketID  = 1;
+    string subject     = 2;
+    string request  = 3;
+    string type      = 4;
+    string requesterID = 5;
+}
+
+message NewTicketResponse {
+    string ID = 1;
+}
