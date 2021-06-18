@@ -23,9 +23,9 @@ message AttachmentResponse {
 
 message AttachmentInfo{
 	string uploadedName = 1;
-	uint32 size          = 2;
+	uint32 size         = 2;
 	string mimeType     = 3;
-	string storageName  = 4;
+//	string storageName  = 4;
 	string ticketID     = 5;
 }
 

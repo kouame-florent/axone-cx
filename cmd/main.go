@@ -5,7 +5,6 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"github.com/google/uuid"
 	"github.com/kouame-florent/axone-cx/api/grpc/gen"
 	"github.com/kouame-florent/axone-cx/internal/ui"
 	"google.golang.org/grpc"
@@ -17,16 +16,15 @@ const (
 
 func main() {
 
-	application := app.New()
+	app := app.NewWithID("axone-cx")
 
-	win := application.NewWindow("Axone")
-
+	win := app.NewWindow("Axone")
 	win.Resize(fyne.NewSize(1280, 480))
 
 	grpcCli, conn := grpcClient()
 	defer conn.Close()
 
-	ticketUI := ui.NewTicket(grpcCli, uuid.New(), win)
+	ticketUI := ui.NewSendTicket(grpcCli, app, win)
 	win.SetContent(ticketUI.MakeUI())
 	win.ShowAndRun()
 }

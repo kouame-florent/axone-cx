@@ -1,0 +1,2 @@
+//run application
+FYNE_THEME=light go run cmd/main.go
