@@ -40,3 +40,16 @@ message NewTicketRequest {
 message NewTicketResponse {
     string ID = 1;
 }
+
+message Ticket {
+    string subject           = 1;      
+	string request           = 2;      
+	string answer            = 3;      
+	string requesterID       = 4;
+    string requesterEmail    = 5;
+    string requesterFullName = 6;
+	string status            = 7;   
+	string type              = 8;    
+	string priority          = 9;
+	uint32 rate              = 10;        
+}

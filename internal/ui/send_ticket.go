@@ -17,6 +17,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/google/uuid"
 	"github.com/kouame-florent/axone-cx/api/grpc/gen"
+	"github.com/kouame-florent/axone-cx/internal/axonecx"
 )
 
 type SendTicket struct {
@@ -70,6 +71,7 @@ const (
 	TICKET_TYPE_KEY_TASK     ticketTypeKey = "Tâche"
 )
 
+/*
 type TicketType string
 
 const (
@@ -77,11 +79,12 @@ const (
 	TICKET_TYPE_PROBLEM  TicketType = "problem"
 	TICKET_TYPE_TASK     TicketType = "task"
 )
+*/
 
-var TicketTypeMap = map[ticketTypeKey]TicketType{
-	TICKET_TYPE_KEY_QUESTION: TICKET_TYPE_QUESTION,
-	TICKET_TYPE__KEY_PROBLEM: TICKET_TYPE_PROBLEM,
-	TICKET_TYPE_KEY_TASK:     TICKET_TYPE_TASK,
+var TicketTypeMap = map[ticketTypeKey]axonecx.TicketType{
+	TICKET_TYPE_KEY_QUESTION: axonecx.TICKET_TYPE_QUESTION,
+	TICKET_TYPE__KEY_PROBLEM: axonecx.TICKET_TYPE_PROBLEM,
+	TICKET_TYPE_KEY_TASK:     axonecx.TICKET_TYPE_TASK,
 }
 
 func (st *SendTicket) MakeUI() fyne.CanvasObject {
