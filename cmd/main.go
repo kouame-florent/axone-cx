@@ -1,17 +1,9 @@
 package main
 
 import (
-	"log"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"github.com/kouame-florent/axone-cx/api/grpc/gen"
 	"github.com/kouame-florent/axone-cx/internal/ui"
-	"google.golang.org/grpc"
-)
-
-const (
-	address = "localhost:50051"
 )
 
 func main() {
@@ -21,20 +13,13 @@ func main() {
 	win := app.NewWindow("Axone")
 	win.Resize(fyne.NewSize(1280, 480))
 
-	grpcCli, conn := grpcClient()
-	defer conn.Close()
+	//grpcCli, conn := svc.GrpcClient()
 
-	ticketUI := ui.NewSendTicket(grpcCli, app, win)
-	win.SetContent(ticketUI.MakeUI())
+	auth := ui.NewAuth(app, win)
+	auth.MakeUI()
+
+	//sendTicketUI, err := ui.NewSendTicket(app, win)
+	//sendTicketCanvasObject := sendTicketUI.MakeUI()
+
 	win.ShowAndRun()
-}
-
-func grpcClient() (gen.AxoneClient, *grpc.ClientConn) {
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
-
-	return gen.NewAxoneClient(conn), conn
-
 }

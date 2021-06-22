@@ -18,14 +18,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/kouame-florent/axone-cx/api/grpc/gen"
 	"github.com/kouame-florent/axone-cx/internal/axonecx"
+	"github.com/kouame-florent/axone-cx/internal/svc"
 )
 
-type SendTicket struct {
-	grpcClient gen.AxoneClient
-
-	Win   fyne.Window
-	App   fyne.App
-	Notif *fyne.Notification
+type SendTicketView struct {
+	view
 
 	sendTicketForm      widget.Form
 	subjectFormItem     *widget.FormItem
@@ -37,29 +34,27 @@ type SendTicket struct {
 	sendButton          *widget.Button
 	attachmentButton    *widget.Button
 
-	//	attachmentsList *widget.List
-
 	attachmentVbox *fyne.Container
 
 	AttachmentURIs []fyne.URI
-
-	//ticketID uuid.UUID
-
-	//sendFunc       func()
 
 	subjectBinding       binding.ExternalString
 	subjectBindingString *string
 	requestBinding       binding.ExternalString
 	requestBindingString *string
-	//requestTypeBinding       binding.ExternalString
-	//requestTypeBindingString *string
+
+	//grpcClient gen.AxoneClient
+	//clientConn *grpc.ClientConn
 }
 
-func NewSendTicket(cli gen.AxoneClient, app fyne.App, w fyne.Window) *SendTicket {
-	return &SendTicket{
-		grpcClient: cli,
-		App:        app,
-		Win:        w,
+func NewSendTicket(app fyne.App, win fyne.Window) *SendTicketView {
+	return &SendTicketView{
+		view: view{
+			App: app,
+			Win: win,
+		},
+		//grpcClient: cli,
+		//clientConn: conn,
 	}
 }
 
@@ -71,24 +66,13 @@ const (
 	TICKET_TYPE_KEY_TASK     ticketTypeKey = "Tâche"
 )
 
-/*
-type TicketType string
-
-const (
-	TICKET_TYPE_QUESTION TicketType = "question"
-	TICKET_TYPE_PROBLEM  TicketType = "problem"
-	TICKET_TYPE_TASK     TicketType = "task"
-)
-*/
-
 var TicketTypeMap = map[ticketTypeKey]axonecx.TicketType{
 	TICKET_TYPE_KEY_QUESTION: axonecx.TICKET_TYPE_QUESTION,
 	TICKET_TYPE__KEY_PROBLEM: axonecx.TICKET_TYPE_PROBLEM,
 	TICKET_TYPE_KEY_TASK:     axonecx.TICKET_TYPE_TASK,
 }
 
-func (st *SendTicket) MakeUI() fyne.CanvasObject {
-
+func (st *SendTicketView) MakeUI() fyne.CanvasObject {
 	menu := widget.NewList(
 		func() int {
 			return 2
@@ -143,6 +127,7 @@ func (st *SendTicket) MakeUI() fyne.CanvasObject {
 			label := widget.NewLabel(reader.URI().Name())
 			hbox := container.NewHBox(label, button)
 
+			//remove attachment when x button is tapped
 			button.OnTapped = func() {
 				st.attachmentVbox.Remove(hbox)
 				st.attachmentVbox.Refresh()
@@ -169,24 +154,33 @@ func (st *SendTicket) MakeUI() fyne.CanvasObject {
 	return container.NewBorder(nil, nil, menu, nil, contentVBox)
 }
 
-func (st *SendTicket) reset() {
+func (st *SendTicketView) reset() {
 	st.subjectBinding.Set("")
 	st.requestBinding.Set("")
 	st.requestTypeSelect.Selected = ""
 	st.requestTypeSelect.Refresh()
 	st.AttachmentURIs = []fyne.URI{}
+	st.attachmentVbox.Refresh()
 }
 
-func sendCallBack(st *SendTicket) func() {
+//callback to send tickets
+func sendCallBack(st *SendTicketView) func() {
 	log.Print("sending ticket")
 
 	f := func() {
+		cli, conn, err := svc.Dial(os.Getenv("AXONE_USERNAME"), os.Getenv("AXONE_PASSWORD"))
+		if err != nil {
+			dialog.ShowError(err, st.Win)
+			return
+		}
+		defer conn.Close()
+
 		requesterID := uuid.MustParse("4a2bfb72-94ab-4fb2-b195-52dc1a12ffdb")
 		tType := TicketTypeMap[ticketTypeKey(st.requestTypeSelect.Selected)]
 
 		ticketID := uuid.New().String()
 
-		res, err := sendNewTicket(ticketID, st.subjectEntry.Text, st.requestEntry.Text, string(tType), requesterID.String(), st.grpcClient)
+		res, err := sendNewTicket(ticketID, st.subjectEntry.Text, st.requestEntry.Text, string(tType), requesterID.String(), cli)
 		if err != nil {
 			dialog.ShowError(err, st.Win)
 			return
@@ -195,7 +189,7 @@ func sendCallBack(st *SendTicket) func() {
 
 		for _, uri := range st.AttachmentURIs {
 			//get client stream
-			stream, err := st.grpcClient.SendAttachment(context.TODO())
+			stream, err := cli.SendAttachment(context.TODO())
 			if err != nil {
 				dialog.ShowError(err, st.Win)
 				return
