@@ -7,15 +7,11 @@ import (
 type viewID uint
 
 const (
-	SEND_TICKET viewID = iota
-	LIST_TICKETS
-	SNED_CREDENTIALS
+	LIST_TICKETS_VIEW viewID = iota
+	SEND_TICKET_VIEW
+	CREDENTIALS_VIEW
 )
 
 type view struct {
-	//grpcClient gen.AxoneClient
-	Win       fyne.Window
-	App       fyne.App
-	Notif     *fyne.Notification
-	AuthToken string
+	Win fyne.Window
 }

@@ -31,9 +31,9 @@ func grpcClient(auth BasicAuth) (gen.AxoneClient, *grpc.ClientConn, error) {
 
 }
 
-func Dial(username, password string) (gen.AxoneClient, *grpc.ClientConn, error) {
+func Dial(login, password string) (gen.AxoneClient, *grpc.ClientConn, error) {
 	return grpcClient(BasicAuth{
-		Username: username,
+		Login:    login,
 		Password: password,
 	})
 }

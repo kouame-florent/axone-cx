@@ -25,15 +25,12 @@ type AuthView struct {
 func NewAuth(app fyne.App, win fyne.Window) *AuthView {
 	return &AuthView{
 		view: view{
-			App: app,
 			Win: win,
 		},
-		//grpcConn: conn,
 	}
 }
 
 func (s *AuthView) MakeUI() {
-	//os.Setenv("TOKEN", "WXCV")
 
 	s.loginEntry = widget.Entry{
 		PlaceHolder: "Entrez votre identifieant",
@@ -64,7 +61,7 @@ func (s *AuthView) MakeUI() {
 					return
 				}
 				setEnvVariables(resp)
-				next, err := nextUI(SEND_TICKET, s.App, s.Win)
+				next, err := nextUI(SEND_TICKET_VIEW, s.Win)
 				if err != nil {
 					dialog.ShowError(err, s.Win)
 					return
@@ -89,13 +86,13 @@ func setEnvVariables(resp *gen.LoginResponse) {
 	}
 }
 
-func nextUI(id viewID, app fyne.App, win fyne.Window) (fyne.CanvasObject, error) {
+func nextUI(id viewID, win fyne.Window) (fyne.CanvasObject, error) {
 
 	log.Printf("AXONE USERNAME: %s", os.Getenv("AXONE_USERNAME"))
 	log.Printf("AXONE PASSWORD: %s", os.Getenv("AXONE_PASSWORD"))
 
-	if id == SEND_TICKET {
-		sendTicket := NewSendTicket(app, win)
+	if id == SEND_TICKET_VIEW {
+		sendTicket := NewSendTicket(win)
 
 		return sendTicket.MakeUI(), nil
 	}

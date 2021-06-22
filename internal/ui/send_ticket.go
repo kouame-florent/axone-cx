@@ -42,19 +42,13 @@ type SendTicketView struct {
 	subjectBindingString *string
 	requestBinding       binding.ExternalString
 	requestBindingString *string
-
-	//grpcClient gen.AxoneClient
-	//clientConn *grpc.ClientConn
 }
 
-func NewSendTicket(app fyne.App, win fyne.Window) *SendTicketView {
+func NewSendTicket(win fyne.Window) *SendTicketView {
 	return &SendTicketView{
 		view: view{
-			App: app,
 			Win: win,
 		},
-		//grpcClient: cli,
-		//clientConn: conn,
 	}
 }
 
@@ -73,14 +67,8 @@ var TicketTypeMap = map[ticketTypeKey]axonecx.TicketType{
 }
 
 func (st *SendTicketView) MakeUI() fyne.CanvasObject {
-	menu := widget.NewList(
-		func() int {
-			return 2
-		},
-		func() fyne.CanvasObject {
-			return widget.NewLabel("ticket numero 0001")
-		},
-		func(i int, template fyne.CanvasObject) {})
+
+	menu := NewLeftMenuView(st.Win)
 
 	st.subjectBinding = binding.BindString(st.subjectBindingString)
 	st.subjectEntry = widget.NewEntryWithData(st.subjectBinding)
@@ -151,7 +139,7 @@ func (st *SendTicketView) MakeUI() fyne.CanvasObject {
 
 	contentVBox := container.NewVBox(&st.sendTicketForm, attchmentBorder, st.attachmentVbox, sendButtonBorder)
 
-	return container.NewBorder(nil, nil, menu, nil, contentVBox)
+	return container.NewBorder(nil, nil, menu.MakeUI(), nil, contentVBox)
 }
 
 func (st *SendTicketView) reset() {
@@ -199,7 +187,7 @@ func sendCallBack(st *SendTicketView) func() {
 		}
 
 		st.reset()
-		sendNotification(st.App, ticketID)
+		sendNotification(fyne.CurrentApp(), ticketID)
 
 	}
 	return f
