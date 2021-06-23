@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"github.com/kouame-florent/axone-cx/api/grpc/gen"
+	"github.com/kouame-florent/axone-cx/internal/axone"
 	"github.com/kouame-florent/axone-cx/internal/svc"
 )
 
@@ -55,7 +55,7 @@ func (s *AuthView) MakeUI() {
 					return
 				}
 				defer conn.Close()
-				resp, err := cli.Login(context.Background(), &gen.LoginRequest{Username: "homer", Password: "homer"})
+				resp, err := cli.Login(context.Background(), &gen.LoginRequest{Login: "homer", Password: "homer"})
 				if err != nil {
 					dialog.ShowError(err, s.Win)
 					return
@@ -76,20 +76,20 @@ func (s *AuthView) MakeUI() {
 }
 
 func setEnvVariables(resp *gen.LoginResponse) {
-	log.Printf("AUTH: %s", resp.AuthToken)
-	creds := strings.Split(resp.AuthToken, ";")
-	if len(creds) == 2 {
-		log.Printf("USER: %s", creds[0])
-		log.Printf("PASSWD: %s", creds[1])
-		os.Setenv("AXONE_USERNAME", creds[0])
-		os.Setenv("AXONE_PASSWORD", creds[1])
-	}
+	os.Setenv(string(axone.ENVIRONMENT_VARIABLE_KEY_USER_ID), resp.UserID)
+	os.Setenv(string(axone.ENVIRONMENT_VARIABLE_KEY_USER_LOGIN), resp.Login)
+	os.Setenv(string(axone.ENVIRONMENT_VARIABLE_KEY_USER_PASSWORD), resp.Password)
+	os.Setenv(string(axone.ENVIRONMENT_VARIABLE_KEY_USER_EMAIL), resp.Email)
+	os.Setenv(string(axone.ENVIRONMENT_VARIABLE_KEY_USER_FIRST_NAME), resp.FirstName)
+	os.Setenv(string(axone.ENVIRONMENT_VARIABLE_KEY_USER_LAST_NAME), resp.LastName)
+
 }
 
 func nextUI(id viewID, win fyne.Window) (fyne.CanvasObject, error) {
 
-	log.Printf("AXONE USERNAME: %s", os.Getenv("AXONE_USERNAME"))
-	log.Printf("AXONE PASSWORD: %s", os.Getenv("AXONE_PASSWORD"))
+	log.Printf("AXONE LOGIN: %s", os.Getenv(string(axone.ENVIRONMENT_VARIABLE_KEY_USER_LOGIN)))
+	log.Printf("AXONE PASSWORD: %s", os.Getenv(string(axone.ENVIRONMENT_VARIABLE_KEY_USER_PASSWORD)))
+	log.Printf("AXONE USER ID: %s", os.Getenv(string(axone.ENVIRONMENT_VARIABLE_KEY_USER_ID)))
 
 	if id == SEND_TICKET_VIEW {
 		sendTicket := NewSendTicket(win)

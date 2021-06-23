@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type AxoneClient interface {
 	SendNewTicket(ctx context.Context, in *NewTicketRequest, opts ...grpc.CallOption) (*NewTicketResponse, error)
 	SendAttachment(ctx context.Context, opts ...grpc.CallOption) (Axone_SendAttachmentClient, error)
+	ListRequesterTickets(ctx context.Context, in *ListRequesterTicketsRequest, opts ...grpc.CallOption) (*ListRequesterTicketsResponse, error)
 	ListAgentTickets(ctx context.Context, in *AgentTicketsListRequest, opts ...grpc.CallOption) (*AgentTicketsListResponse, error)
 	Subscribe(ctx context.Context, in *NotificationRequest, opts ...grpc.CallOption) (Axone_SubscribeClient, error)
 	Unsubscribe(ctx context.Context, in *NotificationRequest, opts ...grpc.CallOption) (*NotificationResponse, error)
@@ -75,6 +76,15 @@ func (x *axoneSendAttachmentClient) CloseAndRecv() (*AttachmentResponse, error) 
 		return nil, err
 	}
 	return m, nil
+}
+
+func (c *axoneClient) ListRequesterTickets(ctx context.Context, in *ListRequesterTicketsRequest, opts ...grpc.CallOption) (*ListRequesterTicketsResponse, error) {
+	out := new(ListRequesterTicketsResponse)
+	err := c.cc.Invoke(ctx, "/api.Axone/ListRequesterTickets", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *axoneClient) ListAgentTickets(ctx context.Context, in *AgentTicketsListRequest, opts ...grpc.CallOption) (*AgentTicketsListResponse, error) {
@@ -142,6 +152,7 @@ func (c *axoneClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.
 type AxoneServer interface {
 	SendNewTicket(context.Context, *NewTicketRequest) (*NewTicketResponse, error)
 	SendAttachment(Axone_SendAttachmentServer) error
+	ListRequesterTickets(context.Context, *ListRequesterTicketsRequest) (*ListRequesterTicketsResponse, error)
 	ListAgentTickets(context.Context, *AgentTicketsListRequest) (*AgentTicketsListResponse, error)
 	Subscribe(*NotificationRequest, Axone_SubscribeServer) error
 	Unsubscribe(context.Context, *NotificationRequest) (*NotificationResponse, error)
@@ -158,6 +169,9 @@ func (UnimplementedAxoneServer) SendNewTicket(context.Context, *NewTicketRequest
 }
 func (UnimplementedAxoneServer) SendAttachment(Axone_SendAttachmentServer) error {
 	return status.Errorf(codes.Unimplemented, "method SendAttachment not implemented")
+}
+func (UnimplementedAxoneServer) ListRequesterTickets(context.Context, *ListRequesterTicketsRequest) (*ListRequesterTicketsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListRequesterTickets not implemented")
 }
 func (UnimplementedAxoneServer) ListAgentTickets(context.Context, *AgentTicketsListRequest) (*AgentTicketsListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAgentTickets not implemented")
@@ -226,6 +240,24 @@ func (x *axoneSendAttachmentServer) Recv() (*AttachmentRequest, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+func _Axone_ListRequesterTickets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRequesterTicketsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AxoneServer).ListRequesterTickets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Axone/ListRequesterTickets",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AxoneServer).ListRequesterTickets(ctx, req.(*ListRequesterTicketsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Axone_ListAgentTickets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -313,6 +345,10 @@ var Axone_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendNewTicket",
 			Handler:    _Axone_SendNewTicket_Handler,
+		},
+		{
+			MethodName: "ListRequesterTickets",
+			Handler:    _Axone_ListRequesterTickets_Handler,
 		},
 		{
 			MethodName: "ListAgentTickets",

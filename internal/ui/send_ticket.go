@@ -17,7 +17,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/google/uuid"
 	"github.com/kouame-florent/axone-cx/api/grpc/gen"
-	"github.com/kouame-florent/axone-cx/internal/axonecx"
+	"github.com/kouame-florent/axone-cx/internal/axone"
 	"github.com/kouame-florent/axone-cx/internal/svc"
 )
 
@@ -60,10 +60,10 @@ const (
 	TICKET_TYPE_KEY_TASK     ticketTypeKey = "Tâche"
 )
 
-var TicketTypeMap = map[ticketTypeKey]axonecx.TicketType{
-	TICKET_TYPE_KEY_QUESTION: axonecx.TICKET_TYPE_QUESTION,
-	TICKET_TYPE__KEY_PROBLEM: axonecx.TICKET_TYPE_PROBLEM,
-	TICKET_TYPE_KEY_TASK:     axonecx.TICKET_TYPE_TASK,
+var TicketTypeMap = map[ticketTypeKey]axone.TicketType{
+	TICKET_TYPE_KEY_QUESTION: axone.TICKET_TYPE_QUESTION,
+	TICKET_TYPE__KEY_PROBLEM: axone.TICKET_TYPE_PROBLEM,
+	TICKET_TYPE_KEY_TASK:     axone.TICKET_TYPE_TASK,
 }
 
 func (st *SendTicketView) MakeUI() fyne.CanvasObject {
@@ -156,14 +156,15 @@ func sendCallBack(st *SendTicketView) func() {
 	log.Print("sending ticket")
 
 	f := func() {
-		cli, conn, err := svc.Dial(os.Getenv("AXONE_USERNAME"), os.Getenv("AXONE_PASSWORD"))
+		cli, conn, err := svc.Dial(os.Getenv(string(axone.ENVIRONMENT_VARIABLE_KEY_USER_LOGIN)),
+			os.Getenv(string(axone.ENVIRONMENT_VARIABLE_KEY_USER_PASSWORD)))
 		if err != nil {
 			dialog.ShowError(err, st.Win)
 			return
 		}
 		defer conn.Close()
 
-		requesterID := uuid.MustParse("4a2bfb72-94ab-4fb2-b195-52dc1a12ffdb")
+		requesterID := uuid.MustParse(string(axone.ENVIRONMENT_VARIABLE_KEY_USER_ID))
 		tType := TicketTypeMap[ticketTypeKey(st.requestTypeSelect.Selected)]
 
 		ticketID := uuid.New().String()
